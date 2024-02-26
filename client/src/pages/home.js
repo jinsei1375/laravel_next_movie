@@ -4,7 +4,7 @@ import Head from 'next/head'
 import { useEffect, useState } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
-import { CardActionArea, CardMedia, Typography } from '@mui/material';
+import { CardMedia, Typography } from '@mui/material';
 import Link from 'next/link';
 import SearchBar from '@/components/SearchBar';
 
