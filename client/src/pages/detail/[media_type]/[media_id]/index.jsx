@@ -5,19 +5,18 @@ import axios from 'axios';
 import Head from 'next/head';
 import React from 'react'
 
-const Detail = ({detail}) => {
+const Detail = ({detail, media_type}) => {
   console.log(detail);
   return (
     <AppLayout
             header={
                 <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                    Detail
+                  {detail.title} - Detail
                 </h2>
             }>
             <Head>
                 <title>Laravel - Detail</title>
             </Head>
-            <SearchBar />
             <Box
               sx={{ 
                 height: {xs: "auto", md: "70vh"},
@@ -55,9 +54,11 @@ const Detail = ({detail}) => {
                     <img width={"70%"} src={`https://image.tmdb.org/t/p/original${detail.poster_path}`} alt="" />
                   </Grid>
                   <Grid md={8} item>
-                    <Typography variant='h4' paragraph>{detail.title}</Typography>
+                    <Typography variant='h4' paragraph>{detail.title || detail.name}</Typography>
                     <Typography>{detail.overview}</Typography>
-                    <Typography variant='h6'>公開日{detail.release_date}</Typography>
+                    <Typography variant='h6'>
+                      {media_type == 'movie' ? `公開日：${detail.release_date}` : `初回放送日：${detail.first_air_date}`}
+                      </Typography>
                   </Grid>
                 </Grid>
               </Container>
@@ -79,7 +80,7 @@ export async function getServerSideProps(context) {
     }
 
     return {
-      props: {detail: combinedData}
+      props: {detail: combinedData, media_type, media_id}
     }
   } catch {
     return {notFound: true}
