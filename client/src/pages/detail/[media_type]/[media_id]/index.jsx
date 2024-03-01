@@ -1,12 +1,50 @@
 import AppLayout from '@/components/Layouts/AppLayout';
 import SearchBar from '@/components/SearchBar';
-import { Box, Container, Grid, Typography } from '@mui/material';
+import { Box, Card, CardContent, Container, Grid, Rating, Typography } from '@mui/material';
 import axios from 'axios';
 import Head from 'next/head';
-import React from 'react'
+import React, { useState } from 'react'
 
 const Detail = ({detail, media_type}) => {
-  console.log(detail);
+  // console.log(detail);
+
+  // const [reviews, setReviews] = useState([]);
+
+  const reviews = [
+    {
+      id: 1,
+      content: "面白かった",
+      rating: 4,
+      user: {
+        name: "山田"
+      }
+    },
+    {
+      id: 2,
+      content: "面白かった",
+      rating: 4,
+      user: {
+        name: "山田"
+      }
+    },
+    {
+      id: 3,
+      content: "面白かった",
+      rating: 4,
+      user: {
+        name: "山田"
+      }
+    },
+    {
+      id: 4,
+      content: "面白かった",
+      rating: 4,
+      user: {
+        name: "山田"
+      }
+    },
+  ]
+
   return (
     <AppLayout
             header={
@@ -63,6 +101,48 @@ const Detail = ({detail, media_type}) => {
                 </Grid>
               </Container>
             </Box>
+
+            {/* レビュー内容表示 */}
+            <Container xs={{ py: 4 }}>
+              <Typography
+                component={"h1"}
+                variant='h4'
+                align='center'
+                gutterBottom
+              >
+                レビュー一覧
+              </Typography>
+              <Grid container spacing={3}>
+                {reviews.map((review) => (
+                  <Grid item key={review.id} xs={12}>
+                    <Card>
+                      <CardContent>
+                        <Typography
+                          variant='h6'
+                          component={"div"}
+                          gutterBottom
+                        >
+                          {review.user.name}
+                        </Typography>
+
+                        <Rating 
+                          value={review.rating}
+                          readOnly
+                        />
+
+                        <Typography
+                          variant='body2'
+                          color="textSecondary"
+                          paragraph
+                        >
+                          {review.content}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </Container>
     </AppLayout>
   )
 }
