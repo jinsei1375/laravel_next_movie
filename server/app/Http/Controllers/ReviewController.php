@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Review;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReviewController extends Controller
 {
@@ -40,7 +41,26 @@ class ReviewController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $review = $request->input("rating");
+
+        $validatedData = $request->validate([
+            "content" => 'required|string',
+            "rating" => 'required|integer',
+            "media_type" => 'required|string',
+            "media_id" => 'required|integer',
+        ]);
+
+        $review = Review::create([
+            "user_id" => 1,
+            "content" => $validatedData["content"],
+            "rating" => $validatedData["rating"],
+            "media_type" => $validatedData["media_type"],
+            "media_id" => $validatedData["media_id"],
+        ]);
+        
+        $review->load('user');
+        return response()->json($review);
+
     }
 
     /**

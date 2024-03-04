@@ -1,14 +1,50 @@
 import AppLayout from '@/components/Layouts/AppLayout';
-import SearchBar from '@/components/SearchBar';
-import { Box, Card, CardContent, Container, Grid, Rating, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, Container, Fab, Grid, Modal, Rating, TextareaAutosize, Tooltip, Typography } from '@mui/material';
 import axios from 'axios';
 import Head from 'next/head';
 import React, { useState } from 'react'
+import AddIcon from '@mui/icons-material/Add'
+import laravelAxios from '@/lib/laravelAxios';
 
-const Detail = ({detail, media_type}) => {
+const Detail = ({detail, media_type, media_id}) => {
   // console.log(detail);
 
   // const [reviews, setReviews] = useState([]);
+
+  const [open, setOpen] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [review, setReview] = useState('');
+
+  const handleOpen = () => {
+    setOpen(true);
+  }
+
+  const handleClose = () => {
+    setOpen(false);
+  }
+
+  const handleReviewChange = (e) => {
+    setReview(e.target.value);
+  }
+
+  const handleRatingChange = (e, newValue) => {
+    setRating(newValue);
+  }
+
+  const isDisabled = !rating || !review.trim();
+
+  const handleReviewAdd = async() => {
+    try {
+      const response = await laravelAxios.post(`api/reviews`, {
+        content: review,
+        rating: rating,
+        media_type: media_type,
+        media_id: media_id
+      })
+    } catch(err) {
+      console.log(err);
+    }
+  }
 
   const reviews = [
     {
@@ -103,7 +139,7 @@ const Detail = ({detail, media_type}) => {
             </Box>
 
             {/* レビュー内容表示 */}
-            <Container xs={{ py: 4 }}>
+            <Container xs={{ py: 4 }} style={{ marginTop: "10px" }}>
               <Typography
                 component={"h1"}
                 variant='h4'
@@ -143,6 +179,73 @@ const Detail = ({detail, media_type}) => {
                 ))}
               </Grid>
             </Container>
+            {/* レビュー内容表示 */}
+
+            {/* レビュー追加ボタン */}
+            <Box
+              sx={{ 
+                position: "fixed" ,
+                bottom: "16px",
+                right: "16px",
+                zIndex: 100
+              }}
+            >
+              <Tooltip title="レビュー追加">
+                <Fab
+                  style={{ 
+                    background: "#1976d2", 
+                    color: "white"
+                  }}
+                  onClick={handleOpen}
+                >
+                  <AddIcon />
+                </Fab>
+              </Tooltip>
+            </Box>
+            {/* レビュー追加ボタン */}
+
+            {/* モーダル */}
+            <Modal open={open} onClose={handleClose}>
+              <Box
+                sx={{ 
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: 400,
+                  bgcolor: "background.paper",
+                  border: "2px solid, #000",
+                  boxShadow: 24,
+                  p: 4
+                }}
+              >
+                <Typography variant='h6' component={"h2"}>
+                  レビューを書く
+                </Typography>
+                <Rating
+                  required
+                  onChange={handleRatingChange}
+                  value={rating}
+                />
+                  <TextareaAutosize
+                    required
+                    minRows={5}
+                    placeholder='レビュー内容'
+                    style={{ width: "100%", marginTop: "10px" }}
+                    onChange={handleReviewChange}
+                    value={review}
+                  />
+
+                  <Button
+                    variant='outlined'
+                    disabled={isDisabled}
+                    onClick={handleReviewAdd}
+                  >
+                    送信
+                  </Button>
+              </Box>
+            </Modal>
+            {/* モーダル */}
     </AppLayout>
   )
 }
