@@ -2,18 +2,18 @@ import AppLayout from '@/components/Layouts/AppLayout';
 import { Box, Button, Card, CardContent, Container, Fab, Grid, Modal, Rating, TextareaAutosize, Tooltip, Typography } from '@mui/material';
 import axios from 'axios';
 import Head from 'next/head';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import AddIcon from '@mui/icons-material/Add'
+import StarIcon from '@mui/icons-material/Star'
 import laravelAxios from '@/lib/laravelAxios';
 
 const Detail = ({detail, media_type, media_id}) => {
-  // console.log(detail);
 
-  // const [reviews, setReviews] = useState([]);
-
+  const [reviews, setReviews] = useState([]);
   const [open, setOpen] = useState(false);
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
+  const [averageRating, setAverageRating] = useState(null);
 
   const handleOpen = () => {
     setOpen(true);
@@ -34,52 +34,47 @@ const Detail = ({detail, media_type, media_id}) => {
   const isDisabled = !rating || !review.trim();
 
   const handleReviewAdd = async() => {
+    handleClose();
     try {
       const response = await laravelAxios.post(`api/reviews`, {
         content: review,
         rating: rating,
         media_type: media_type,
         media_id: media_id
-      })
+      });
+      const newReview = response.data;
+      setReview("");
+      setRating(0);
+      const updatedReviews = [...reviews, newReview];
+      setReviews(updatedReviews);
+
+      updateAverageRating(updatedReviews);
     } catch(err) {
       console.log(err);
     }
   }
 
-  const reviews = [
-    {
-      id: 1,
-      content: "面白かった",
-      rating: 4,
-      user: {
-        name: "山田"
-      }
-    },
-    {
-      id: 2,
-      content: "面白かった",
-      rating: 4,
-      user: {
-        name: "山田"
-      }
-    },
-    {
-      id: 3,
-      content: "面白かった",
-      rating: 4,
-      user: {
-        name: "山田"
-      }
-    },
-    {
-      id: 4,
-      content: "面白かった",
-      rating: 4,
-      user: {
-        name: "山田"
-      }
-    },
-  ]
+const updateAverageRating = (updatedReviews) => {
+  if (updatedReviews.length > 0) {
+    const totalRating = updatedReviews.reduce((acc, review) => acc + review.rating, 0);
+    setAverageRating((totalRating / updatedReviews.length).toFixed(1));
+  }
+}
+
+useEffect(() => {
+  const fetchReviews = async() => {
+    try {
+      const response = await laravelAxios.get(`api/reviews/${media_type}/${media_id}`);
+      const fetchReviews = response.data;
+      console.log(fetchReviews);
+      setReviews(fetchReviews);
+      updateAverageRating(fetchReviews);
+    } catch(err) {
+      console.log(err);
+    } 
+  }
+  fetchReviews();
+}, [media_type, media_id])
 
   return (
     <AppLayout
@@ -130,6 +125,29 @@ const Detail = ({detail, media_type, media_id}) => {
                   <Grid md={8} item>
                     <Typography variant='h4' paragraph>{detail.title || detail.name}</Typography>
                     <Typography>{detail.overview}</Typography>
+                    <Box
+                      sx={{ 
+                        display: "flex",
+                        alignItems: "center",
+                        mb: 2
+                      }}
+                    >
+                      <Rating
+                        readOnly
+                        precision={0.5}
+                        value={parseFloat(averageRating)}
+                        emptyIcon={<StarIcon style={{ color: "white"}}/>}
+                      />
+                      <Typography
+                        sx={{ 
+                          ml: 1,
+                          fontSize: "1.5rem",
+                          fontWeight: "bold"
+                        }}
+                      >
+                        {averageRating}
+                      </Typography>
+                    </Box>
                     <Typography variant='h6'>
                       {media_type == 'movie' ? `公開日：${detail.release_date}` : `初回放送日：${detail.first_air_date}`}
                       </Typography>
@@ -241,7 +259,7 @@ const Detail = ({detail, media_type, media_id}) => {
                     disabled={isDisabled}
                     onClick={handleReviewAdd}
                   >
-                    送信
+                    レビュー投稿
                   </Button>
               </Box>
             </Modal>
