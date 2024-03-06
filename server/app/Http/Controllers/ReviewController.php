@@ -94,7 +94,17 @@ class ReviewController extends Controller
      */
     public function update(Request $request, Review $review)
     {
-        //
+        $validatedData = $request->validate([
+            "content" => 'required|string',
+            "rating" => 'required|integer',
+        ]);
+
+        $review->update([
+            "content" => $validatedData["content"],
+            "rating" => $validatedData["rating"],
+        ]);
+
+        return response()->json($review);
     }
 
     /**
@@ -105,6 +115,8 @@ class ReviewController extends Controller
      */
     public function destroy(Review $review)
     {
-        //
+        $review->delete();
+
+        return response()->json(["message" => "正常にレビューを削除しました。"]);
     }
 }

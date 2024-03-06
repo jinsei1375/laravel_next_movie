@@ -1,11 +1,12 @@
 import AppLayout from '@/components/Layouts/AppLayout';
-import { Box, Button, Card, CardContent, Container, Fab, Grid, Modal, Rating, TextareaAutosize, Tooltip, Typography } from '@mui/material';
+import { Box, Button, ButtonGroup, Card, CardContent, Container, Fab, Grid, Modal, Rating, TextareaAutosize, Tooltip, Typography } from '@mui/material';
 import axios from 'axios';
 import Head from 'next/head';
 import React, { useEffect, useState } from 'react'
 import AddIcon from '@mui/icons-material/Add'
 import StarIcon from '@mui/icons-material/Star'
 import laravelAxios from '@/lib/laravelAxios';
+import { useAuth } from '@/hooks/auth';
 
 const Detail = ({detail, media_type, media_id}) => {
 
@@ -14,6 +15,10 @@ const Detail = ({detail, media_type, media_id}) => {
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
   const [averageRating, setAverageRating] = useState(null);
+  const { user } = useAuth({middleware: 'auth'});
+  const [editMode, setEditMode] = useState(null);
+  const [editRating, setEditRating] = useState(null);
+  const [editContent, setEditContent] = useState("");
 
   const handleOpen = () => {
     setOpen(true);
@@ -31,7 +36,12 @@ const Detail = ({detail, media_type, media_id}) => {
     setRating(newValue);
   }
 
-  const isDisabled = !rating || !review.trim();
+  const isButtonDisabled = (rating, content) => {
+    return !rating || !content.trim();
+  }
+
+  const isReviewButtonDisabled = isButtonDisabled(rating, review);
+  const isEditButtonDisabled = isButtonDisabled(editRating, editContent);
 
   const handleReviewAdd = async() => {
     handleClose();
@@ -58,6 +68,62 @@ const updateAverageRating = (updatedReviews) => {
   if (updatedReviews.length > 0) {
     const totalRating = updatedReviews.reduce((acc, review) => acc + review.rating, 0);
     setAverageRating((totalRating / updatedReviews.length).toFixed(1));
+  } else {
+    setAverageRating(null);
+  }
+}
+
+const handleDelete = async(id) => {
+  if (window.confirm("削除してよろしいですか？")) {
+    try {
+      const response = await laravelAxios.delete(`api/review/${id}`);
+      console.log(response.data);
+      const filteredReviews = reviews.filter((review) => review.id !== id);
+      setReviews(filteredReviews);
+      updateAverageRating(filteredReviews);
+    } catch(err) {
+      console.log(err);
+    }
+  }
+}
+const handleEdit = async(review) => {
+  setEditMode(review.id);
+  setEditRating(review.rating);
+  setEditContent(review.content);
+
+  try {
+    const response = await laravelAxios.delete(`api/review/${id}`);
+    console.log(response.data);
+    const filteredReviews = reviews.filter((review) => review.id !== id);
+    setReviews(filteredReviews);
+    updateAverageRating(filteredReviews);
+  } catch(err) {
+    console.log(err);
+  }
+}
+
+const handleConfirmEdit = async(reviewId) => {
+  try {
+    const response = await laravelAxios.post(`api/review/${reviewId}`, {
+      content: editContent,
+      rating: editRating,
+    });
+    const updateReview = response.data;
+    const updatedReviews = reviews.map((review) => {
+      if (review.id === reviewId) {
+        return {
+          ...review, 
+          content: updateReview.content,
+          rating: updateReview.rating
+        }
+      }
+      return review;
+    });
+    setReviews(updatedReviews);
+    updateAverageRating(updatedReviews);
+    setEditMode(null);
+  } catch(err) {
+    console.log(err);
   }
 }
 
@@ -172,25 +238,61 @@ useEffect(() => {
                     <Card>
                       <CardContent>
                         <Typography
-                          variant='h6'
-                          component={"div"}
-                          gutterBottom
-                        >
-                          {review.user.name}
+                            variant='h6'
+                            component={"div"}
+                            gutterBottom
+                          >
+                            {review.user.name}
                         </Typography>
+                        {editMode === review.id ? (
+                          <>
+                            {/* 編集モード */}
+                            <Rating value={editRating} onChange={(e, newValue) => setEditRating(newValue)} />
+                            <TextareaAutosize value={editContent} minRows={3} style={{  width: "100%" }} onChange={(e) => setEditContent(e.target.value)} />
+                            <Grid
+                              sx={{ 
+                                display: "flex",
+                                justifyContent: "flex-end"
+                              }}
+                            >
+                              <ButtonGroup>
+                                <Button 
+                                  onClick={() => handleConfirmEdit(review.id)}
+                                  disabled={isEditButtonDisabled}
+                                >編集確定</Button>
+                              </ButtonGroup>
+                            </Grid>
+                          </>
+                        ) : (
+                        <>
+                          <Rating 
+                            value={review.rating}
+                            readOnly
+                          />
 
-                        <Rating 
-                          value={review.rating}
-                          readOnly
-                        />
+                          <Typography
+                            variant='body2'
+                            color="textSecondary"
+                            paragraph
+                          >
+                            {review.content}
+                          </Typography>
 
-                        <Typography
-                          variant='body2'
-                          color="textSecondary"
-                          paragraph
-                        >
-                          {review.content}
-                        </Typography>
+                          {user?.id === review.user.id && (
+                            <Grid
+                              sx={{ 
+                                display: "flex",
+                                justifyContent: "flex-end"
+                              }}
+                            >
+                              <ButtonGroup>
+                                <Button onClick={() => handleEdit(review)}>編集</Button>
+                                <Button color='error' onClick={() => handleDelete(review.id)}>削除</Button>
+                              </ButtonGroup>
+                            </Grid>
+                          )}
+                        </>
+                        )}
                       </CardContent>
                     </Card>
                   </Grid>
@@ -256,7 +358,7 @@ useEffect(() => {
 
                   <Button
                     variant='outlined'
-                    disabled={isDisabled}
+                    disabled={isReviewButtonDisabled}
                     onClick={handleReviewAdd}
                   >
                     レビュー投稿
