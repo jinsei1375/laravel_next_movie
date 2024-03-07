@@ -22,4 +22,9 @@ class Review extends Model
     {
         return $this->BelongsTo(User::class);
     }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
 }

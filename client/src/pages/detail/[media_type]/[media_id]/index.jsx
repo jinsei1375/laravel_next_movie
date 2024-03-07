@@ -7,6 +7,7 @@ import AddIcon from '@mui/icons-material/Add'
 import StarIcon from '@mui/icons-material/Star'
 import laravelAxios from '@/lib/laravelAxios';
 import { useAuth } from '@/hooks/auth';
+import Link from 'next/link';
 
 const Detail = ({detail, media_type, media_id}) => {
 
@@ -55,7 +56,8 @@ const Detail = ({detail, media_type, media_id}) => {
       const newReview = response.data;
       setReview("");
       setRating(0);
-      const updatedReviews = [...reviews, newReview];
+      const updatedReviews = [newReview, ...reviews];
+      console.log(updatedReviews);
       setReviews(updatedReviews);
 
       updateAverageRating(updatedReviews);
@@ -235,66 +237,68 @@ useEffect(() => {
               <Grid container spacing={3}>
                 {reviews.map((review) => (
                   <Grid item key={review.id} xs={12}>
-                    <Card>
-                      <CardContent>
-                        <Typography
-                            variant='h6'
-                            component={"div"}
-                            gutterBottom
-                          >
-                            {review.user.name}
-                        </Typography>
-                        {editMode === review.id ? (
-                          <>
-                            {/* 編集モード */}
-                            <Rating value={editRating} onChange={(e, newValue) => setEditRating(newValue)} />
-                            <TextareaAutosize value={editContent} minRows={3} style={{  width: "100%" }} onChange={(e) => setEditContent(e.target.value)} />
-                            <Grid
-                              sx={{ 
-                                display: "flex",
-                                justifyContent: "flex-end"
-                              }}
-                            >
-                              <ButtonGroup>
-                                <Button 
-                                  onClick={() => handleConfirmEdit(review.id)}
-                                  disabled={isEditButtonDisabled}
-                                >編集確定</Button>
-                              </ButtonGroup>
-                            </Grid>
-                          </>
-                        ) : (
-                        <>
-                          <Rating 
-                            value={review.rating}
-                            readOnly
-                          />
-
+                      <Link href={`/detail/${media_type}/${media_id}/review/${review.id}`}>
+                      <Card>
+                        <CardContent>
                           <Typography
-                            variant='body2'
-                            color="textSecondary"
-                            paragraph
-                          >
-                            {review.content}
-                          </Typography>
-
-                          {user?.id === review.user.id && (
-                            <Grid
-                              sx={{ 
-                                display: "flex",
-                                justifyContent: "flex-end"
-                              }}
+                              variant='h6'
+                              component={"div"}
+                              gutterBottom
                             >
-                              <ButtonGroup>
-                                <Button onClick={() => handleEdit(review)}>編集</Button>
-                                <Button color='error' onClick={() => handleDelete(review.id)}>削除</Button>
-                              </ButtonGroup>
-                            </Grid>
+                              {review.user.name}
+                          </Typography>
+                          {editMode === review.id ? (
+                            <>
+                              {/* 編集モード */}
+                              <Rating value={editRating} onChange={(e, newValue) => setEditRating(newValue)} />
+                              <TextareaAutosize value={editContent} minRows={3} style={{  width: "100%" }} onChange={(e) => setEditContent(e.target.value)} />
+                              <Grid
+                                sx={{ 
+                                  display: "flex",
+                                  justifyContent: "flex-end"
+                                }}
+                              >
+                                <ButtonGroup>
+                                  <Button 
+                                    onClick={() => handleConfirmEdit(review.id)}
+                                    disabled={isEditButtonDisabled}
+                                  >編集確定</Button>
+                                </ButtonGroup>
+                              </Grid>
+                            </>
+                          ) : (
+                          <>
+                            <Rating 
+                              value={review.rating}
+                              readOnly
+                            />
+
+                            <Typography
+                              variant='body2'
+                              color="textSecondary"
+                              paragraph
+                            >
+                              {review.content}
+                            </Typography>
+
+                            {user?.id === review.user.id && (
+                              <Grid
+                                sx={{ 
+                                  display: "flex",
+                                  justifyContent: "flex-end"
+                                }}
+                              >
+                                <ButtonGroup>
+                                  <Button onClick={() => handleEdit(review)}>編集</Button>
+                                  <Button color='error' onClick={() => handleDelete(review.id)}>削除</Button>
+                                </ButtonGroup>
+                              </Grid>
+                            )}
+                          </>
                           )}
-                        </>
-                        )}
-                      </CardContent>
-                    </Card>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   </Grid>
                 ))}
               </Grid>

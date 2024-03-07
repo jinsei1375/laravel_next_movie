@@ -18,6 +18,7 @@ class ReviewController extends Controller
         $reviews = Review::with('user')
             ->where('media_type', $media_type)
             ->where('media_id', $media_id)
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return response()->json($reviews);
@@ -71,7 +72,8 @@ class ReviewController extends Controller
      */
     public function show(Review $review)
     {
-        //
+        $review->load('user', 'comments.user');
+        return response()->json($review);
     }
 
     /**
