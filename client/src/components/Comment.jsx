@@ -1,7 +1,7 @@
 import { Button, ButtonGroup, Card, CardContent, Grid, Typography } from '@mui/material'
 import React from 'react'
 
-const Comment = () => {
+const Comment = ({comment}) => {
   return (
     <Card>
       <CardContent>
@@ -10,14 +10,14 @@ const Comment = () => {
             component={"div"}
             gutterBottom
           >
-            ユーザー名
+            {comment.user_name}
         </Typography>
         <Typography
           variant='body2'
           color="textSecondary"
           component="p"
         >
-          コメント
+          {comment.content}
         </Typography>
         <Grid container justifyContent="flex-end">
           <ButtonGroup>
