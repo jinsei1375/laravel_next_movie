@@ -83,7 +83,17 @@ class CommentController extends Controller
      */
     public function update(Request $request, Comment $comment)
     {
-        //
+        if (Auth::id() !== $comment->user_id) {
+            return response()->json(["message" => "編集権限がありません。"], 401);
+        }
+        $validatedData = $request->validate([
+            "content" => 'required|string',
+        ]);
+
+        $comment->content = $validatedData['content'];
+        $comment->save();
+
+        return response()->json($comment);
     }
 
     /**
@@ -94,6 +104,7 @@ class CommentController extends Controller
      */
     public function destroy(Comment $comment)
     {
-        //
+        $comment->delete();
+        return response()->json(["message" => "無事に削除できました。"]);
     }
 }

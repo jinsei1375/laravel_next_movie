@@ -47,7 +47,9 @@ export const ReviewDetail = () => {
         content: trimmedContent,
         review_id: reviewId
       });
-      console.log(response.data);
+      const newComment = response.data;
+      setComments([newComment, ...comments]);
+      setContent("");
     } catch(err) {
       console.log('エラー', err);
     }
@@ -133,7 +135,7 @@ export const ReviewDetail = () => {
                     </Button>
                   </Box>
                   {/* コメント */}
-                  <CommentList comments={comments} />
+                  <CommentList comments={comments} setComments={setComments} />
                 </>
               ) : (
                 <div>Loading...</div>
