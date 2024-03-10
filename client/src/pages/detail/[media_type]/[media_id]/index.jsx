@@ -1,5 +1,5 @@
 import AppLayout from '@/components/Layouts/AppLayout';
-import { Box, Button, ButtonGroup, Card, CardContent, Container, Fab, Grid, Modal, Rating, TextareaAutosize, Tooltip, Typography } from '@mui/material';
+import { Box, Button, ButtonGroup, Card, CardContent, Container, Fab, Grid, IconButton, Modal, Rating, TextareaAutosize, Tooltip, Typography } from '@mui/material';
 import axios from 'axios';
 import Head from 'next/head';
 import React, { useEffect, useState } from 'react'
@@ -8,6 +8,7 @@ import StarIcon from '@mui/icons-material/Star'
 import laravelAxios from '@/lib/laravelAxios';
 import { useAuth } from '@/hooks/auth';
 import Link from 'next/link';
+import FavoriteIcon from '@mui/icons-material/Favorite'
 
 const Detail = ({detail, media_type, media_id}) => {
 
@@ -20,6 +21,7 @@ const Detail = ({detail, media_type, media_id}) => {
   const [editMode, setEditMode] = useState(null);
   const [editRating, setEditRating] = useState(null);
   const [editContent, setEditContent] = useState("");
+  const [isFavorite, setIsFavorite] = useState(false);
 
   const handleOpen = () => {
     setOpen(true);
@@ -129,14 +131,36 @@ const handleConfirmEdit = async(reviewId) => {
   }
 }
 
+const handleToggleFavorite = async() => {
+  try {
+    const response = await laravelAxios.post(`api/favorites`, {
+      media_type: media_type,
+      media_id: media_id
+    });
+    console.log(response.data);
+    setIsFavorite(response.data.status === "added")
+  } catch(err) {
+
+  }
+}
+
 useEffect(() => {
   const fetchReviews = async() => {
     try {
-      const response = await laravelAxios.get(`api/reviews/${media_type}/${media_id}`);
-      const fetchReviews = response.data;
-      console.log(fetchReviews);
+      //同時に複数のapiを呼び出す時はPromise使う
+      const [reviewResponse, favoriteResponse] = await Promise.all([
+        laravelAxios.get(`api/reviews/${media_type}/${media_id}`),
+        laravelAxios.get(`api/favorites/status`, {
+          params: {
+            media_type: media_type,
+            media_id: media_id,
+          }
+        }),
+      ]) 
+      const fetchReviews = reviewResponse.data;
       setReviews(fetchReviews);
       updateAverageRating(fetchReviews);
+      setIsFavorite(favoriteResponse.data);
     } catch(err) {
       console.log(err);
     } 
@@ -192,6 +216,12 @@ useEffect(() => {
                   </Grid>
                   <Grid md={8} item>
                     <Typography variant='h4' paragraph>{detail.title || detail.name}</Typography>
+
+                    {/* お気に入りボタン */}
+                    <IconButton onClick={handleToggleFavorite} style={{ color: isFavorite ? "red" : "white", background: "#0d253F" }}>
+                      <FavoriteIcon />
+                    </IconButton>
+
                     <Typography>{detail.overview}</Typography>
                     <Box
                       sx={{ 

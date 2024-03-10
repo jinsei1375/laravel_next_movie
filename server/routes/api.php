@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ReviewController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -31,3 +32,7 @@ Route::get('/review/{review}', [ReviewController::class, 'show']);
 Route::post('/comments', [CommentController::class, 'store']);
 Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
 Route::put('/comments/{comment}', [CommentController::class, 'update']);
+
+// お気に入り機能
+Route::post('/favorites', [FavoriteController::class, 'toggleFavorite']);
+Route::get('/favorites/status', [FavoriteController::class, 'checkFavoriteStatus']);
