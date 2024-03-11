@@ -5,9 +5,29 @@ namespace App\Http\Controllers;
 use App\Models\Favorite;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 
 class FavoriteController extends Controller
 {
+
+    public function index()
+    {
+        $api_key = config('services.tmbp.api_key');
+        $user = Auth::user();
+
+        $favorites = $user->favorites;
+
+        $details = [];
+        foreach ($favorites as $favorite) {
+            $tmbp_api_key = "https://api.themoviedb.org/3/" . $favorite->media_type . "/" . $favorite->media_id . "?api_key=" . $api_key;
+            $response = Http::get($tmbp_api_key);
+            if ($response->successful()) {
+                $details[] = array_merge($response->json(), ['media_type' => $favorite->media_type]);
+            }
+        }
+        return response()->json($details);
+    }
+
     public function toggleFavorite(Request $request)
     {
         $validatedData = $request->validate([
